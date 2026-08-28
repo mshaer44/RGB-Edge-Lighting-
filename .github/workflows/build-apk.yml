@@ -19,12 +19,24 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Cache Gradle wrapper and caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties','**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Build Debug APK
-        run: gradlew assembleDebug
+        # explicit module path avoids ambiguous builds
+        run: ./gradlew :app:assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
